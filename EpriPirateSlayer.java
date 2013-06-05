@@ -23,7 +23,7 @@ public class EpriPirateSlayer extends Script {
 
 	public static final RSTile[] walkingToPirates = new RSTile[] { new RSTile(3007, 3347, 0), new RSTile(3007, 3332, 0), new RSTile(3000, 3316, 0), new RSTile(2991, 3304, 0), new RSTile(2986, 3288, 0), new RSTile(2982, 3275, 0), new RSTile(2978, 3261, 0), new RSTile(2978, 3241, 0), new RSTile(2972, 3230, 0), new RSTile(2972, 3214, 0), new RSTile(2982, 3200, 0), new RSTile(2992, 3191, 0), new RSTile(3004, 3180, 0), new RSTile(3007, 3165, 0),  };
 
-	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3107, 3295, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3339, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
+	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3107, 3295, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3335, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
 
 	@Override
 	public void run() {
@@ -31,7 +31,7 @@ public class EpriPirateSlayer extends Script {
 		loop();
 	}
 	private void loop() {
-		// todo! NOT USABLE YET UNTILL THIS IS BUILT
+		useBank();
 	}
 
 	private void openTrapDoor() {
@@ -55,18 +55,18 @@ public class EpriPirateSlayer extends Script {
 	private void runningToFalador() {
 		if (distance(Player.getPosition(), atLumbridgeSpot) >= 10) {
 			GameTab.open(GameTab.TABS.MAGIC);
-			if (GameTab.getOpen() != GameTab.TABS.MAGIC) {
-				GameTab.open(GameTab.TABS.MAGIC);
-			} else {
-				Mouse.clickBox(563, 232, 582, 246, 1);
-				while (Player.getAnimation() != -1); {
-					sleep(150, 350);
-					Walking.walkPath (LumbridgeToFaladorPath);
-				}
-			}
 		} else {
+			Mouse.clickBox(563, 232, 582, 246, 1);
+			sleep(1500);
+			if (Player.getAnimation() == -1) {
+				println("We are at lumbridge. Starting to walk there");
+				sleep(150, 350);
+				Walking.walkPath (LumbridgeToFaladorPath);
+
+			}
 			Walking.walkPath(LumbridgeToFaladorPath);
 		}
+		useBank();
 	}
 	private boolean fighting(RSPlayer me){
 		while (getFood() > 0 && !Inventory.isFull())
@@ -81,6 +81,9 @@ public class EpriPirateSlayer extends Script {
 			RSNPC pirates[] = NPCs.findNearest(new String[] {"Pirate"});{
 				for (int i = 0; !me.isInCombat() && i < pirates.length; sleep(50, 100)) {
 					RSTile piratePos = pirates[i].getPosition();
+					if(!hasItem(foodID) && Skills.getCurrentLevel("Hitpoints") < Skills.getActualLevel("Hitpoints") / 2) {
+						runningToBank();
+					}
 					if (!pirates[i].isInCombat() && pirates[i].isOnScreen() && isInArea(PiratesLocation)) {
 						pirates[i].click(new String[] {"Attack"});
 						println("Attacking Pirates");
@@ -145,30 +148,37 @@ public class EpriPirateSlayer extends Script {
 		int y = Player.getPosition().getY();
 		return x >= 3009 && x <= 3019 && y >= 3354 && y <= 3358;
 	}
+	private void walkingToPirate() {
+		Walking.walkPath(walkingToPirates);
+	}
 	private boolean useBank() {
+		int myPosition = distance(Player.getPosition(), BankLocation);
 
-		if (!AtBank()) {
-			if (distance(Player.getPosition(), BankLocation) <= 10) {
+		if (!AtBank() && myPosition > 30) {
+				println("We got over 30 steps to bank");
 				runningToFalador();
-			} else {
-				PathFinding.aStarWalk(BankLocation);
-
 			}
-
-		} else if(!Banking.isBankScreenOpen()) {
-			RSObject[] bankBooths = Objects.find(bankBoothID);
-			if (bankBooths.length > 3) {
-				bankBooths[0].click("bank");
-				if (Banking.isBankScreenOpen()) {
+		if (myPosition <= 30 && myPosition > 5) {
+			println("We got less than 30 steps but over 5 steps to bank. Walking there");
+			PathFinding.aStarWalk(BankLocation);
+		}
+		if(!Banking.isBankScreenOpen()) {
+			RSObject[] bankBooths = Objects.findNearest(bankBoothID);
+			if (bankBooths.length < 3) {
+				Banking.openBankBooth();
+				if (Banking.isBankScreenOpen() && !Banking.isPinScreenOpen()) {
 					Banking.depositAll();
 					Banking.withdraw(27, 333);
 					Banking.close();
+					if (Inventory.getCount(foodID) > 5) {
+
 					}
 				}
-			} else PathFinding.aStarWalk(BankLocation);
-
+			}
+		} else PathFinding.aStarWalk(BankLocation);
 		return true;
 	}
+
 	public static int distance(RSTile p1, RSTile p2) {
 		return (int) Math.round(Math.sqrt(Math.pow(p1.getX() -  p2.getX(), 2)+ Math.pow(p1.getY() - p2.getY(), 2)));
 	}
