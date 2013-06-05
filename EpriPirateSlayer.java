@@ -55,9 +55,9 @@ public class EpriPirateSlayer extends Script {
 	private void runningToFalador() {
 		if (distance(Player.getPosition(), atLumbridgeSpot) >= 10) {
 			GameTab.open(GameTab.TABS.MAGIC);
-			if (GameTab.getOpen() != GameTab.TABS.MAGIC)
+			if (GameTab.getOpen() != GameTab.TABS.MAGIC) {
 				GameTab.open(GameTab.TABS.MAGIC);
-			else {
+			} else {
 				Mouse.clickBox(563, 232, 582, 246, 1);
 				while (Player.getAnimation() != -1); {
 					sleep(150, 350);
@@ -65,7 +65,7 @@ public class EpriPirateSlayer extends Script {
 				}
 			}
 		} else {
-			Walking.walkPath (LumbridgeToFaladorPath);
+			Walking.walkPath(LumbridgeToFaladorPath);
 		}
 	}
 	private boolean fighting(RSPlayer me){
