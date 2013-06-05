@@ -1,9 +1,10 @@
 package scripts.EpriPirateSlayer;
 
+import org.tribot.api.General;
+import org.tribot.api.Timing;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.*;
-import org.tribot.api2007.types.RSObject;
-import org.tribot.api2007.types.RSTile;
+import org.tribot.api2007.types.*;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
 
@@ -12,6 +13,7 @@ public class EpriPirateSlayer extends Script {
 	private int foodID = 333;
 	private int bankBoothID = 11758;
 	private int trapDoorID = 9472;
+	private RSTile fightingPoint = new RSTile(2994, 9574, 0);
 	private RSTile atLumbridgeSpot = new RSTile(3224, 3219, 0);
 	private RSTile trapDoorLocation = new RSTile(3009, 3150, 0);
 	private RSTile[] toBankPath = {new RSTile(2940, 3363, 0), new RSTile(2936, 3355, 0)};
@@ -51,7 +53,10 @@ public class EpriPirateSlayer extends Script {
 		Walking.walkPath(walkingToPirates);
 		openTrapDoor();
 	}
-
+	private int getFood() {
+		RSItem trout[] = Inventory.find(new int[] {333});
+		return trout.length;
+	}
 	private void runningToFalador() {
 		if (distance(Player.getPosition(), atLumbridgeSpot) >= 10) {
 			GameTab.open(GameTab.TABS.MAGIC);
@@ -68,17 +73,72 @@ public class EpriPirateSlayer extends Script {
 			Walking.walkPath (LumbridgeToFaladorPath);
 		}
 	}
+	private boolean fighting(RSPlayer me){
+		while (getFood() > 0 && !Inventory.isFull())
+		{
+			RSNPC randoms[] = NPCs.findNearest(new String[] {"Swarm", "Evil Chicken"});
+			if (randoms.length > 0 && randoms[0] != null) {
+				runAwayFromCombat();
+				waitUntillIdle();
+				runBackFromCombat();
+				waitUntillIdle();
 
-	private boolean iNeedBank() { // waiting for battle plans...
-		if (Inventory.getCount(foodID) >= 1) {
-			useBank();
+			}
+			RSNPC pirates[] = NPCs.findNearest(new String[] {"Pirate"});{
+				for (int i = 0; !me.isInCombat() && i < pirates.length; sleep(50, 100)) {
+					RSTile piratePos = pirates[i].getPosition();
+					if (!pirates[i].isInCombat() && pirates[i].isOnScreen() && isInArea(piratePos)) {
+						pirates[i].click(new String[] {"Attack"});
+						println("Attacking Pirates");
+						eatFood();
+						waitUntillIdle();
+						lootItems();
+						waitUntillIdle();
+						break;
+					}
+					Walking.blindWalkTo(fightingPoint);
+					eatFood();
+					waitUntillIdle();
+				}
+			}
 		}
 		return true;
 	}
+	public boolean isInArea(RSTile piratePos) {
+		int x = Player.getPosition().getX();
+		int y = Player.getPosition().getY();
+		return x >= 2984 && x <= 3001 && y >= 9574 && y <= 9586;
+
+	}
+	private void runAwayFromCombat() {
+		// todo
+	}
+
+	private void lootItems() {
+		// todo
+	}
+
+	private void eatFood() {
+		// todo
+	}
+
+	private void runBackFromCombat() {
+		// todo
+	}
+	private void waitUntillIdle() {
+		long t = System.currentTimeMillis();
+		RSPlayer me = Player.getRSPlayer();
+		for (; Timing.timeFromMark(t) < (long) General.random(1000, 2000); sleep(50, 150)) {
+			if (!Player.isMoving() && Player.getAnimation() == -1 && !me.isInCombat()) {
+				break;
+			}
+		}
+	}
+
 	public boolean AtBank() {
 		int x = Player.getPosition().getX();
 		int y = Player.getPosition().getY();
-		return x >= 3019 && x <= 3009 && y >= 3358 && y <= 3354;
+		return x >= 3009 && x <= 3019 && y >= 3354 && y <= 3358;
 	}
 	private boolean useBank() {
 
