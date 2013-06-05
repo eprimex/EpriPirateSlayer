@@ -7,6 +7,7 @@ import org.tribot.api2007.*;
 import org.tribot.api2007.types.*;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
+import org.tribot.script.*;
 
 @ScriptManifest(authors={"eprimex"}, category="Combat", name ="EpriPirateSlayer", description ="Kills pirates south from falador with banking support. START IN WEST FALADOR BANK!")
 public class EpriPirateSlayer extends Script {
@@ -21,9 +22,9 @@ public class EpriPirateSlayer extends Script {
 	private RSTile BankLocation = new RSTile(3011, 3356);
 	private RSTile PiratesLocation = new RSTile(2993, 9575);
 
-	public static final RSTile[] walkingToPirates = new RSTile[] { new RSTile(3007, 3347, 0), new RSTile(3007, 3332, 0), new RSTile(3000, 3316, 0), new RSTile(2991, 3304, 0), new RSTile(2986, 3288, 0), new RSTile(2982, 3275, 0), new RSTile(2978, 3261, 0), new RSTile(2978, 3241, 0), new RSTile(2972, 3230, 0), new RSTile(2972, 3214, 0), new RSTile(2982, 3200, 0), new RSTile(2992, 3191, 0), new RSTile(3004, 3180, 0), new RSTile(3007, 3165, 0),  };
+	public static final RSTile[] walkingToPirates = new RSTile[] { new RSTile(3007, 3347, 0), new RSTile(3007, 3332, 0), new RSTile(3000, 3316, 0), new RSTile(2991, 3304, 0), new RSTile(2986, 3288, 0), new RSTile(2982, 3275, 0), new RSTile(2978, 3261, 0), new RSTile(2978, 3247, 0), new RSTile(2972, 3234, 0), new RSTile(2972, 3215, 0), new RSTile(2982, 3200, 0), new RSTile(2992, 3191, 0), new RSTile(3004, 3180, 0), new RSTile(3007, 3165, 0),  };
 
-	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3107, 3295, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3335, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
+	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3111, 3294, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3335, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
 
 	@Override
 	public void run() {
@@ -43,7 +44,24 @@ public class EpriPirateSlayer extends Script {
 
 		}
 	}
+	private String getChatMessage() {
+		for(int i = 11; i < 103; i++)
+		{
+			RSInterfaceChild chat = Interfaces.get(137, i);
+			if(chat != null && !chat.isHidden())
+			{
+				if(chat.getText() == "")
+				{
+					RSInterfaceChild message = Interfaces.get(137, i - 1);
+					return message.getText();
+				}
+				if(i == 103 && chat.getText() != "")
+					return chat.getText();
+			}
+		}
 
+		return null;
+	}
 	private void walkToPirates() {
 		Walking.walkPath(walkingToPirates);
 		openTrapDoor();
@@ -53,20 +71,23 @@ public class EpriPirateSlayer extends Script {
 		return trout.length;
 	}
 	private void runningToFalador() {
-		if (distance(Player.getPosition(), atLumbridgeSpot) >= 10) {
+		if (distance(Player.getPosition(), atLumbridgeSpot) > 10 && Player.getAnimation() == -1) {
 			GameTab.open(GameTab.TABS.MAGIC);
-		} else {
 			Mouse.clickBox(563, 232, 582, 246, 1);
-			sleep(1500);
-			if (Player.getAnimation() == -1) {
-				println("We are at lumbridge. Starting to walk there");
-				sleep(150, 350);
-				Walking.walkPath (LumbridgeToFaladorPath);
+			// checking if hometele is on CD
 
 			}
-			Walking.walkPath(LumbridgeToFaladorPath);
-		}
-		useBank();
+			while (Player.getAnimation() != -1) {
+				sleep(500);
+			}
+			if (Player.getAnimation() == -1 && (distance(Player.getPosition(), atLumbridgeSpot) < 10)) {
+				println("We are at lumbridge. Starting to walk there");
+				setRun();
+				sleep(150, 350);
+				Walking.walkPath (LumbridgeToFaladorPath);
+		} else Walking.walkPath(LumbridgeToFaladorPath);
+	useBank();
+
 	}
 	private boolean fighting(RSPlayer me){
 		while (getFood() > 0 && !Inventory.isFull())
@@ -148,7 +169,18 @@ public class EpriPirateSlayer extends Script {
 		int y = Player.getPosition().getY();
 		return x >= 3009 && x <= 3019 && y >= 3354 && y <= 3358;
 	}
+	public boolean isRunOn() {
+		return (Game.getSettingsArray()[173] == 1);
+	}
+	public void setRun() {
+		if (!isRunOn()) {
+			if (GameTab.getOpen() != GameTab.TABS.OPTIONS)
+				GameTab.open(GameTab.TABS.OPTIONS);
+			Mouse.clickBox(626, 415, 657, 445, 1);
+		}
+	}
 	private void walkingToPirate() {
+		setRun();
 		Walking.walkPath(walkingToPirates);
 	}
 	private boolean useBank() {
@@ -171,7 +203,9 @@ public class EpriPirateSlayer extends Script {
 					Banking.withdraw(27, 333);
 					Banking.close();
 					if (Inventory.getCount(foodID) > 5) {
-
+						walkingToPirate();
+					} else {
+						useBank();
 					}
 				}
 			}
@@ -181,5 +215,11 @@ public class EpriPirateSlayer extends Script {
 
 	public static int distance(RSTile p1, RSTile p2) {
 		return (int) Math.round(Math.sqrt(Math.pow(p1.getX() -  p2.getX(), 2)+ Math.pow(p1.getY() - p2.getY(), 2)));
+	}
+	public void stoppingScript() {
+		println("We got home teleport cooldown. Stopping script!");
+		Banking.close();
+		while (Login.getLoginState() == Login.STATE.INGAME)
+			Login.logout();
 	}
 }
