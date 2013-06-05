@@ -31,12 +31,7 @@ public class EpriPirateSlayer extends Script {
 		loop();
 	}
 	private void loop() {
-		ourBattlePlan();
-	}
-
-	private void ourBattlePlan() {
-		// continue from here. everything else should be done
-
+		// todo! NOT USABLE YET UNTILL THIS IS BUILT
 	}
 
 	private void openTrapDoor() {
@@ -82,12 +77,11 @@ public class EpriPirateSlayer extends Script {
 				waitUntillIdle();
 				runBackFromCombat();
 				waitUntillIdle();
-
 			}
 			RSNPC pirates[] = NPCs.findNearest(new String[] {"Pirate"});{
 				for (int i = 0; !me.isInCombat() && i < pirates.length; sleep(50, 100)) {
 					RSTile piratePos = pirates[i].getPosition();
-					if (!pirates[i].isInCombat() && pirates[i].isOnScreen() && isInArea(piratePos)) {
+					if (!pirates[i].isInCombat() && pirates[i].isOnScreen() && isInArea(PiratesLocation)) {
 						pirates[i].click(new String[] {"Attack"});
 						println("Attacking Pirates");
 						eatFood();
@@ -104,7 +98,7 @@ public class EpriPirateSlayer extends Script {
 		}
 		return true;
 	}
-	public boolean isInArea(RSTile piratePos) {
+	public boolean isInArea(RSTile piratesLocation) {
 		int x = Player.getPosition().getX();
 		int y = Player.getPosition().getY();
 		return x >= 2984 && x <= 3001 && y >= 9574 && y <= 9586;
@@ -115,11 +109,22 @@ public class EpriPirateSlayer extends Script {
 	}
 
 	private void lootItems() {
-		// todo
+		// we dont need looting yet...
+	}
+	public boolean hasItem(int item) {
+		return Inventory.find(new int[] {item}).length != 0;
+	}
+	private void eatFood() {
+		if(!hasItem(foodID) && Skills.getCurrentLevel("Hitpoints") < Skills.getActualLevel("Hitpoints") / 2) {
+			runningToBank();
+		}
+		if(hasItem(foodID) && Skills.getCurrentLevel("Hitpoints") < Skills.getActualLevel("Hitpoints") / 2) {
+			Inventory.find(new int[] {foodID})[0].click("Eat");
+		}
 	}
 
-	private void eatFood() {
-		// todo
+	private void runningToBank() {
+		// todo (from pirates to bank
 	}
 
 	private void runBackFromCombat() {
