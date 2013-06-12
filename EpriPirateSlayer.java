@@ -7,7 +7,7 @@ import org.tribot.api2007.*;
 import org.tribot.api2007.types.*;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
-import org.tribot.script.*;
+import org.tribot.script.interfaces.MessageListening07;
 
 @ScriptManifest(authors={"eprimex"}, category="Combat", name ="EpriPirateSlayer", description ="Kills pirates south from falador with banking support. START IN WEST FALADOR BANK!")
 public class EpriPirateSlayer extends Script {
@@ -21,7 +21,7 @@ public class EpriPirateSlayer extends Script {
 	private RSTile[] toWallPatch = {new RSTile(2940, 3362, 0), new RSTile(2946, 3368, 0)};
 	private RSTile BankLocation = new RSTile(3011, 3356);
 	private RSTile PiratesLocation = new RSTile(2993, 9575);
-
+	private int TIME_LEFT;
 	public static final RSTile[] walkingToPirates = new RSTile[] { new RSTile(3007, 3347, 0), new RSTile(3007, 3332, 0), new RSTile(3000, 3316, 0), new RSTile(2991, 3304, 0), new RSTile(2986, 3288, 0), new RSTile(2982, 3275, 0), new RSTile(2978, 3261, 0), new RSTile(2978, 3247, 0), new RSTile(2972, 3234, 0), new RSTile(2972, 3215, 0), new RSTile(2982, 3200, 0), new RSTile(2992, 3191, 0), new RSTile(3004, 3180, 0), new RSTile(3007, 3165, 0),  };
 
 	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3111, 3294, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3335, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
@@ -32,35 +32,31 @@ public class EpriPirateSlayer extends Script {
 		loop();
 	}
 	private void loop() {
-		useBank();
+		int myPosition = distance(Player.getPosition(), BankLocation);
+
+		if (!AtBank() && myPosition > 30) {
+			println("We got over 30 steps to bank");
+			runningToFalador();
+		}
+		if (myPosition <= 30 && myPosition > 5) {
+			println("We got less than 30 steps but over 5 steps to bank. Walking there");
+			PathFinding.aStarWalk(BankLocation);
+		}
 	}
 
 	private void openTrapDoor() {
 		RSObject[] trapDoor = Objects.find(5, trapDoorID);
-		if (trapDoor == null) {
+		if (trapDoor.length > 0) {
 			trapDoor[0].click("Climb-down");
 		} else {
 			Walking.blindWalkTo(trapDoorLocation);
 
 		}
 	}
-	private String getChatMessage() {
-		for(int i = 11; i < 103; i++)
-		{
-			RSInterfaceChild chat = Interfaces.get(137, i);
-			if(chat != null && !chat.isHidden())
-			{
-				if(chat.getText() == "")
-				{
-					RSInterfaceChild message = Interfaces.get(137, i - 1);
-					return message.getText();
-				}
-				if(i == 103 && chat.getText() != "")
-					return chat.getText();
-			}
+	public void serverMessageRecieved(String arg0) {
+		if (arg0.contains("You need to wait")) {
+			TIME_LEFT = Integer.parseInt(arg0);
 		}
-
-		return null;
 	}
 	private void walkToPirates() {
 		Walking.walkPath(walkingToPirates);
@@ -70,12 +66,26 @@ public class EpriPirateSlayer extends Script {
 		RSItem trout[] = Inventory.find(new int[] {333});
 		return trout.length;
 	}
+	private int minutesLeft(){
+		//String str = // broken code... someone has to check this
+		int minutes = -1;
+
+		/*if (str.startsWith("You need to wait")){
+			String[] split = str.split(" ");
+			if (split.length > 7)
+				minutes = (split[6].equals("seconds")) ? minutes = 1 : Integer.parseInt(split[5]);
+		}*/
+
+		return minutes;
+	}
 	private void runningToFalador() {
 		if (distance(Player.getPosition(), atLumbridgeSpot) > 10 && Player.getAnimation() == -1) {
 			GameTab.open(GameTab.TABS.MAGIC);
 			Mouse.clickBox(563, 232, 582, 246, 1);
-			// checking if hometele is on CD
-
+			sleep(General.random(500, 2500));
+			if (minutesLeft() > 1) {
+				println("We got home teleport CD left! Logging out");
+				stoppingScript();
 			}
 			while (Player.getAnimation() != -1) {
 				sleep(500);
@@ -85,6 +95,7 @@ public class EpriPirateSlayer extends Script {
 				setRun();
 				sleep(150, 350);
 				Walking.walkPath (LumbridgeToFaladorPath);
+			}
 		} else Walking.walkPath(LumbridgeToFaladorPath);
 	useBank();
 
