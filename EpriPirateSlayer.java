@@ -30,6 +30,7 @@ public class EpriPirateSlayer extends Script implements MessageListening07 {
 	@Override
 	public void run() {
 		println("Starting up...");
+		Walking.walking_timeout = 5000;
 		loop();
 	}
 	private void loop() {
@@ -96,6 +97,10 @@ public class EpriPirateSlayer extends Script implements MessageListening07 {
 			if (TIME_LEFT > 1) {
 				println("We got home teleport CD left! Logging out");
 				stoppingScript();
+			}
+			if (TIME_LEFT == 1) {
+				println("We got 1 minute of CD left! waiting...");
+				sleep(10000);
 			}
 			while (Player.getAnimation() != -1) {
 				sleep(500);
