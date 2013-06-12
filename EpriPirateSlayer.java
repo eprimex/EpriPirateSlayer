@@ -9,11 +9,13 @@ import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.MessageListening07;
 
+
 @ScriptManifest(authors={"eprimex"}, category="Combat", name ="EpriPirateSlayer", description ="Kills pirates south from falador with banking support. START IN WEST FALADOR BANK!")
-public class EpriPirateSlayer extends Script {
+public class EpriPirateSlayer extends Script implements MessageListening07 {
 	private int foodID = 333;
 	private int bankBoothID = 11758;
 	private int trapDoorID = 9472;
+	private int TIME_LEFT = 0;
 	private RSTile fightingPoint = new RSTile(2994, 9574, 0);
 	private RSTile atLumbridgeSpot = new RSTile(3224, 3219, 0);
 	private RSTile trapDoorLocation = new RSTile(3009, 3150, 0);
@@ -21,7 +23,6 @@ public class EpriPirateSlayer extends Script {
 	private RSTile[] toWallPatch = {new RSTile(2940, 3362, 0), new RSTile(2946, 3368, 0)};
 	private RSTile BankLocation = new RSTile(3011, 3356);
 	private RSTile PiratesLocation = new RSTile(2993, 9575);
-	private int TIME_LEFT;
 	public static final RSTile[] walkingToPirates = new RSTile[] { new RSTile(3007, 3347, 0), new RSTile(3007, 3332, 0), new RSTile(3000, 3316, 0), new RSTile(2991, 3304, 0), new RSTile(2986, 3288, 0), new RSTile(2982, 3275, 0), new RSTile(2978, 3261, 0), new RSTile(2978, 3247, 0), new RSTile(2972, 3234, 0), new RSTile(2972, 3215, 0), new RSTile(2982, 3200, 0), new RSTile(2992, 3191, 0), new RSTile(3004, 3180, 0), new RSTile(3007, 3165, 0),  };
 
 	public static final RSTile[] LumbridgeToFaladorPath = new RSTile[] { new RSTile(3230, 3219, 0), new RSTile(3230, 3229, 0), new RSTile(3222, 3240, 0), new RSTile(3217, 3249, 0), new RSTile(3216, 3262, 0), new RSTile(3210, 3277, 0), new RSTile(3195, 3280, 0), new RSTile(3183, 3286, 0), new RSTile(3168, 3288, 0), new RSTile(3154, 3293, 0), new RSTile(3139, 3297, 0), new RSTile(3123, 3299, 0), new RSTile(3111, 3294, 0), new RSTile(3093, 3290, 0), new RSTile(3078, 3289, 0), new RSTile(3071, 3277, 0), new RSTile(3056, 3277, 0), new RSTile(3041, 3275, 0), new RSTile(3025, 3277, 0), new RSTile(3010, 3279, 0), new RSTile(3008, 3295, 0), new RSTile(3007, 3310, 0), new RSTile(3007, 3323, 0), new RSTile(3007, 3335, 0), new RSTile(3006, 3351, 0), new RSTile(3011, 3356, 0) };
@@ -53,9 +54,20 @@ public class EpriPirateSlayer extends Script {
 
 		}
 	}
+
+	@Override
+	public void clanMessageRecieved(String s, String s2) {
+		//To change body of implemented methods use File | Settings | File Templates.
+	}
+
+	@Override
+	public void playerMessageRecieved(String s, String s2) {
+		//To change body of implemented methods use File | Settings | File Templates.
+	}
+
 	public void serverMessageRecieved(String arg0) {
 		if (arg0.contains("You need to wait")) {
-			TIME_LEFT = Integer.parseInt(arg0);
+			TIME_LEFT = minutesLeft(arg0);
 		}
 	}
 	private void walkToPirates() {
@@ -66,16 +78,14 @@ public class EpriPirateSlayer extends Script {
 		RSItem trout[] = Inventory.find(new int[] {333});
 		return trout.length;
 	}
-	private int minutesLeft(){
-		//String str = // broken code... someone has to check this
+	private int minutesLeft(String str){
 		int minutes = -1;
 
-		/*if (str.startsWith("You need to wait")){
+		if (str.startsWith("You need to wait")){
 			String[] split = str.split(" ");
-			if (split.length > 7)
+			if (split.length > 6)
 				minutes = (split[6].equals("seconds")) ? minutes = 1 : Integer.parseInt(split[5]);
-		}*/
-
+		}
 		return minutes;
 	}
 	private void runningToFalador() {
@@ -83,7 +93,7 @@ public class EpriPirateSlayer extends Script {
 			GameTab.open(GameTab.TABS.MAGIC);
 			Mouse.clickBox(563, 232, 582, 246, 1);
 			sleep(General.random(500, 2500));
-			if (minutesLeft() > 1) {
+			if (TIME_LEFT > 1) {
 				println("We got home teleport CD left! Logging out");
 				stoppingScript();
 			}
