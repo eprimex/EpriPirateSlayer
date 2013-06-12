@@ -109,9 +109,17 @@ public class EpriPirateSlayer extends Script implements MessageListening07 {
 				println("We are at lumbridge. Starting to walk there");
 				setRun();
 				sleep(150, 350);
+				while (!AtBank()) {
+					Walking.walking_timeout = 5000;
+					Walking.walkPath (LumbridgeToFaladorPath);
+				}
+			}
+		} else {
+			while (!AtBank()) {
+				Walking.walking_timeout = 5000;
 				Walking.walkPath (LumbridgeToFaladorPath);
 			}
-		} else Walking.walkPath(LumbridgeToFaladorPath);
+		}
 	useBank();
 
 	}
@@ -207,7 +215,10 @@ public class EpriPirateSlayer extends Script implements MessageListening07 {
 	}
 	private void walkingToPirate() {
 		setRun();
-		Walking.walkPath(walkingToPirates);
+		while (!AtBank()) {
+			Walking.walking_timeout = 5000;
+			Walking.walkPath (LumbridgeToFaladorPath);
+		}
 	}
 	private boolean useBank() {
 		int myPosition = distance(Player.getPosition(), BankLocation);
